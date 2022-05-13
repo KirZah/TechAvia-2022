@@ -292,7 +292,7 @@ def make_coco_json(files) -> dict:
         "description": "...",
         "contributor": "...",
         "url": "...",
-        "date_created": "..."
+        "date_created": "...",
     }
 
     all_data['categories'] = []
@@ -303,7 +303,7 @@ def make_coco_json(files) -> dict:
 
     image_id = 0
     annotation_id = 0
-    for file in files:  # fixme
+    for file in files[:1]:  # fixme
         print(f'file #{image_id}. "{file}"')
         with open(file, 'r') as f:
             json_content: dict = json.load(f)
@@ -361,6 +361,9 @@ def make_coco_json(files) -> dict:
                 annotation_id += 1
         ...
         image_id += 1
+        ...
+        pprint.pprint(all_data)
+        exit(1)
     return all_data
 
 
@@ -405,10 +408,10 @@ if __name__ == '__main__':
     # save_path = Path(getcwd() + RELATIVE_SAVE_PATH)
     save_path = Path(SAVE_PATH)
 
-    with open(save_path / 'train_data.json', 'w') as f:
+    with open(save_path / 'train_data_panoptic.json', 'w') as f:
         json.dump(train_data, f, ensure_ascii=False, indent=4)
 
-    with open(save_path / 'test_data.json', 'w') as f:
+    with open(save_path / 'test_data_panoptic.json', 'w') as f:
         json.dump(test_data, f, ensure_ascii=False, indent=4)
 
 
