@@ -6,10 +6,10 @@ import json
 import pprint
 import random
 
-# RELATIVE_DATASET_PATH = r"../dataset"
-# RELATIVE_SAVE_PATH = r"/coco_files"
-DATASET_PATH = r"C:\Users\User\Downloads\TechAvia-2022\TechAvia-2022\dataset"
-SAVE_PATH = r"C:\Users\User\Downloads\TechAvia-2022\TechAvia-2022\data_preprocessing\coco_files"
+
+PATH = r"D:\Kirill\YandexDisk\Projects\hackathons\TechAvia-2022\TechAvia-2022"
+DATASET_PATH = PATH + r"\dataset"
+SAVE_PATH = PATH + r"\data_preprocessing\coco_files"
 
 
 class SuperCategory:
@@ -271,8 +271,6 @@ def _find_rectangle_bbox(
         # print(f"{bbox[3] = }")
         # raise ValueError(f'DATA IS INCORRECT! y > max! ({bbox[1] + bbox[3]} > {image_height})')
 
-
-    #
     return bbox
 
 
@@ -344,9 +342,11 @@ def make_coco_json(files) -> dict:
                         image_height=json_content['imageHeight'],
                     )
                     segmentation = None
-
                 else:
                     raise ValueError(f'Unknown shape_type {shape["shape_type"] = }!!!')
+
+                if segmentation is None:
+                    continue  # do not add data where segmentation is None!
 
                 all_data = add_annotation(
                     all_data,
@@ -372,7 +372,7 @@ if __name__ == '__main__':
     print("path = {}".format(str(dataset_path).replace('/', '\\')))
 
     files = get_all_files(dataset_path)
-    # print(f"{files = }")
+    print(f"{files = }")
     random.shuffle(files)
 
     TRAIN_PERCENTAGE = 0.8

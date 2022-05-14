@@ -6,10 +6,10 @@ import json
 import pprint
 import random
 
-# RELATIVE_DATASET_PATH = r"../dataset"
-# RELATIVE_SAVE_PATH = r"/coco_files"
-DATASET_PATH = r"C:\Users\User\Downloads\TechAvia-2022\TechAvia-2022\dataset"
-SAVE_PATH = r"C:\Users\User\Downloads\TechAvia-2022\TechAvia-2022\data_preprocessing\coco_files"
+
+PATH = r"D:\Kirill\YandexDisk\Projects\hackathons\TechAvia-2022\TechAvia-2022"
+DATASET_PATH = PATH + r"\dataset"
+SAVE_PATH = PATH + r"\data_preprocessing\coco_files"
 
 
 class SuperCategory:
@@ -183,18 +183,25 @@ def add_image(all_data, id, filename):
     return all_data
 
 
-def add_annotation(all_data, id, image_id, category_id, bbox, segmentation):
-    area = bbox[2] * bbox[3]
+def add_annotation(all_data, image_id: int, file_name: str, segments_info: List[dict]):
     all_data['annotations'].append({
-        "id": id,
+        "segments_info": segments_info,
+        "file_name": file_name,
         "image_id": image_id,
+    })
+    return all_data
+
+
+def add_segment(segments_info: List[dict], id, category_id, bbox) -> List[dict]:
+    area = bbox[2] * bbox[3]
+    segments_info.append({
+        "id": id,
         "category_id": category_id,
         "bbox": bbox,  # [x, y, w, h],
-        "segmentation": segmentation,  # [...]
         "area": area,
         "iscrowd": 0,
     })
-    return all_data
+    return segments_info
 
 
 def _round_all_points(points: List[List[float]]) -> List[List[int]]:
@@ -271,8 +278,6 @@ def _find_rectangle_bbox(
         # print(f"{bbox[3] = }")
         # raise ValueError(f'DATA IS INCORRECT! y > max! ({bbox[1] + bbox[3]} > {image_height})')
 
-
-    #
     return bbox
 
 
@@ -303,7 +308,7 @@ def make_coco_json(files) -> dict:
 
     image_id = 0
     annotation_id = 0
-    for file in files[:1]:  # fixme
+    for file in files:  # fixme
         print(f'file #{image_id}. "{file}"')
         with open(file, 'r') as f:
             json_content: dict = json.load(f)
@@ -317,6 +322,7 @@ def make_coco_json(files) -> dict:
                 filename=json_content['imagePath'],
             )
 
+            segments_info = []
             shapes: list = json_content['shapes']
             for shape in shapes:  # dict in list
                 label: str = shape['label']
@@ -348,22 +354,33 @@ def make_coco_json(files) -> dict:
                 else:
                     raise ValueError(f'Unknown shape_type {shape["shape_type"] = }!!!')
 
-                all_data = add_annotation(
-                    all_data,
+                if segmentation is None:
+                    continue  # do not add data where segmentation is None!
+
+                segments_info = add_segment(
+                    segments_info=segments_info,
                     id=annotation_id,
-                    image_id=image_id,
                     category_id=category_id,
                     bbox=bbox,
-                    segmentation=segmentation,
                 )
 
                 ...
                 annotation_id += 1
+            # ...
+            # file.close()
+
+        all_data = add_annotation(
+            all_data=all_data,
+            image_id=image_id,
+            file_name=json_content['imagePath'],
+            segments_info=segments_info,
+        )
+
         ...
         image_id += 1
         ...
-        pprint.pprint(all_data)
-        exit(1)
+        # pprint.pprint(all_data)
+        # exit(1)
     return all_data
 
 
